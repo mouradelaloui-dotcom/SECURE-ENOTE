@@ -1,0 +1,15 @@
+{
+  "name": "secure-enote",
+  "version": "1.0.0",
+  "description": "SECURE-eNOTE — gestion sécurisée des notes et des séances (prototype de recherche OFPPT)",
+  "private": true,
+  "main": "src/server.js",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test --test-concurrency=1 tests/*.test.js",
+    "cle": "node src/cli.js generer-cle"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {}
+}

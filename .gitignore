@@ -1,0 +1,4 @@
+secrets/*.txt
+!secrets/LISEZMOI.txt
+node_modules/
+backups/
