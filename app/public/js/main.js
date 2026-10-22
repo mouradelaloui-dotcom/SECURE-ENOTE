@@ -163,12 +163,16 @@ function shell() {
   const bell = h('button', { class: 'icon-btn bell', 'aria-label': 'Notifications', onclick: () => showNotifications(bell) }, icon('bell', 20),
     state.me.notifications_non_lues ? h('span', { class: 'badge' }, String(state.me.notifications_non_lues)) : null);
   const main = h('div', { class: 'content' });
-  root.replaceChildren(h('div', { class: 'layout' },
-    h('aside', { class: 'sidebar' }, logo(true), h('div', { class: 'org' }, h('span', { class: 'ofppt-badge sm' }, ofppt()), h('div', {}, h('b', {}, 'OFPPT'), h('span', {}, me.etablissement || 'ISTA NTIC Safi'))), nav,
+  // Sur téléphone, le menu est replié derrière un bouton ; il se referme après le choix d'une page.
+  const menuBtn = h('button', { class: 'icon-btn menu-btn', 'aria-label': 'Menu', 'aria-expanded': 'false',
+    onclick: () => { const open = sidebar.classList.toggle('open'); menuBtn.setAttribute('aria-expanded', String(open)); } }, icon('menu', 22));
+  nav.addEventListener('click', (ev) => { if (ev.target.closest('a')) { sidebar.classList.remove('open'); menuBtn.setAttribute('aria-expanded', 'false'); } });
+  const sidebar = h('aside', { class: 'sidebar' }, h('div', { class: 'side-head' }, logo(true), menuBtn), h('div', { class: 'org' }, h('span', { class: 'ofppt-badge sm' }, ofppt()), h('div', {}, h('b', {}, 'OFPPT'), h('span', {}, me.etablissement || 'ISTA NTIC Safi'))), nav,
       h('div', { class: 'side-foot' },
         h('div', { class: 'who' }, h('span', { class: 'avatar' }, me.nom.split(' ').map((x) => x[0]).join('').slice(0, 2)),
           h('div', {}, h('div', { class: 'who-name' }, me.nom), h('div', { class: 'who-role' }, ROLES[me.role]))),
-        h('button', { class: 'btn btn-ghost-light btn-block', onclick: logout }, icon('logout', 16), 'Se déconnecter'))),
+        h('button', { class: 'btn btn-ghost-light btn-block', onclick: logout }, icon('logout', 16), 'Se déconnecter')));
+  root.replaceChildren(h('div', { class: 'layout' }, sidebar,
     h('div', { class: 'main' },
       h('header', { class: 'topbar' }, title,
         h('div', { class: 'top-right' },
