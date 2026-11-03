@@ -14,7 +14,7 @@ const STATUTS_MODIFIABLES = ['brouillon', 'a_corriger'];
 function parseNote(v) {
   if (v === '' || v === null || v === undefined) return null;
   const n = Number(String(v).replace(',', '.'));
-  if (!Number.isFinite(n) || n < 0 || n > 20 || Math.round(n * 100) !== n * 100) {
+  if (!Number.isFinite(n) || n < 0 || n > 20 || Math.abs(Math.round(n * 100) - n * 100) > 1e-6) {
     throw new HttpError(400, `Valeur de note invalide « ${v} » : nombre entre 0 et 20 (2 décimales au plus).`);
   }
   return n;
