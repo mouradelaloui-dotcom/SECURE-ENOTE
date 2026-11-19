@@ -27,16 +27,28 @@ const POIDS_DEFAUT = {
 
 const SEUIL = { rapide: 70, moyen: 50 };
 
-/** Crée la table des échéances si elle n'existe pas (idempotent, lecture-sûre). */
+/**
+ * Crée la table des échéances si elle n'existe pas ET si le compte en a le droit.
+ * Le compte applicatif (enote_app) est volontairement restreint : il ne peut pas
+ * créer de table. Dans ce cas on n'échoue pas — on fonctionne en règle automatique.
+ * Renvoie true si la table `echeances` est disponible (surcharges manuelles possibles).
+ */
 async function assurerTable(db) {
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS echeances (
-      groupe_id  INT  NOT NULL REFERENCES groupes(id),
-      module_id  INT  NOT NULL REFERENCES modules(id),
-      type_eval  TEXT NOT NULL CHECK (type_eval IN ('CC1','CC2','CC3','EFM')),
-      date_limite DATE NOT NULL,
-      PRIMARY KEY (groupe_id, module_id, type_eval)
-    );`);
+  const exist = await db.query("SELECT to_regclass('public.echeances') AS t");
+  if (exist.rows[0].t) return true;
+  try {
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS echeances (
+        groupe_id  INT  NOT NULL REFERENCES groupes(id),
+        module_id  INT  NOT NULL REFERENCES modules(id),
+        type_eval  TEXT NOT NULL CHECK (type_eval IN ('CC1','CC2','CC3','EFM')),
+        date_limite DATE NOT NULL,
+        PRIMARY KEY (groupe_id, module_id, type_eval)
+      );`);
+    return true;
+  } catch {
+    return false; // droits insuffisants : règle automatique seulement
+  }
 }
 
 function classe(note) {
@@ -50,13 +62,18 @@ function classe(note) {
  * @param {object} opt  { delaiSaisie, delaiSeance, poids }
  */
 async function calculer(db, opt = {}) {
-  await assurerTable(db);
+  const avecEcheances = await assurerTable(db);
   const delaiSaisie = opt.delaiSaisie ?? DELAI_SAISIE_JOURS;
   const delaiSeance = opt.delaiSeance ?? DELAI_SEANCE_JOURS;
   const poids = { ...POIDS_DEFAUT, ...(opt.poids || {}) };
 
   // 1) Notes : ponctualité CC/EFM et retard, par formateur.
-  //    Échéance = override (table echeances) OU dernière séance du groupe+module + délai.
+  //    Échéance = surcharge manuelle (table echeances, si disponible) OU, à défaut,
+  //    dernière séance du groupe+module + délai (règle automatique).
+  const dateLimiteExpr = avecEcheances ? 'COALESCE(e.date_limite, a.date_limite)' : 'a.date_limite';
+  const jointureEcheances = avecEcheances
+    ? 'LEFT JOIN echeances e ON e.groupe_id = s.groupe_id AND e.module_id = n.module_id AND e.type_eval = n.type_eval'
+    : '';
   const notes = await db.query(`
     WITH ech_auto AS (
       SELECT groupe_id, module_id, (MAX(date_seance) + ($1 || ' days')::interval)::date AS date_limite
@@ -64,11 +81,11 @@ async function calculer(db, opt = {}) {
     )
     SELECT n.auteur_id AS formateur_id, n.type_eval,
            n.cree_le::date AS date_saisie,
-           COALESCE(e.date_limite, a.date_limite) AS date_limite,
+           ${dateLimiteExpr} AS date_limite,
            n.statut, n.version
     FROM notes n
     JOIN stagiaires s ON s.id = n.stagiaire_id
-    LEFT JOIN echeances e ON e.groupe_id = s.groupe_id AND e.module_id = n.module_id AND e.type_eval = n.type_eval
+    ${jointureEcheances}
     LEFT JOIN ech_auto  a ON a.groupe_id = s.groupe_id AND a.module_id = n.module_id
     WHERE n.statut <> 'brouillon'
   `, [String(delaiSaisie)]);
@@ -158,7 +175,7 @@ async function calculer(db, opt = {}) {
     });
   }
   lignes.sort((a, b) => (b.note ?? -1) - (a.note ?? -1));
-  return { genere_le: new Date().toISOString(), delaiSaisie, delaiSeance, poids, seuils: SEUIL, formateurs: lignes };
+  return { genere_le: new Date().toISOString(), delaiSaisie, delaiSeance, poids, seuils: SEUIL, avec_echeances: avecEcheances, formateurs: lignes };
 }
 
 module.exports = { calculer, assurerTable, POIDS_DEFAUT, SEUIL, classe };
