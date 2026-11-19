@@ -14,26 +14,28 @@ const PERMISSIONS = {
   formateur: [
     'note.lire_propres', 'note.saisir', 'note.soumettre',
     'seance.lire_propres', 'seance.saisir', 'seance.soumettre',
-    'edt.consulter', 'stage.consulter',
+    'edt.consulter', 'stage.consulter', 'biblio.consulter', 'biblio.gerer',
   ],
   gestionnaire: [            // gestionnaire des stagiaires : absences uniquement
     'absence.lire', 'absence.justifier',
     'journal.lire_partiel', 'edt.consulter', 'stage.consulter', 'stage.gerer',
+    'biblio.consulter', 'biblio.gerer', 'biblio.gerer_tout',
   ],
   directeur: [
     'note.lire_toutes', 'note.valider',
     'seance.lire_toutes', 'seance.valider',
     'journal.lire_partiel', 'export.notes', 'stats.lire', 'securite.synthese', 'performance.consulter', 'edt.consulter', 'edt.modifier', 'stage.consulter', 'stage.gerer',
+    'biblio.consulter', 'biblio.gerer', 'biblio.gerer_tout',
   ],
   administrateur: [
     'note.lire_toutes', 'note.modifier_apres_validation', 'seance.lire_toutes',
     'journal.lire_complet', 'journal.verifier',
     'comptes.gerer', 'alertes.gerer', 'regles.configurer', 'sauvegardes.gerer',
-    'securite.synthese', 'stats.lire', 'performance.consulter', 'edt.consulter', 'edt.modifier', 'stage.consulter',
+    'securite.synthese', 'stats.lire', 'performance.consulter', 'edt.consulter', 'edt.modifier', 'stage.consulter', 'biblio.consulter',
   ],
   // Espaces de consultation : lecture seule, limitée aux notes VALIDÉES et à l'assiduité.
   // Le dossier consulté est déterminé par le serveur (session), jamais par un identifiant fourni par le client.
-  stagiaire: ['dossier.lire_soi', 'edt.consulter', 'stage.lire_soi'],
+  stagiaire: ['dossier.lire_soi', 'edt.consulter', 'stage.lire_soi', 'biblio.consulter'],
   parent: ['dossier.lire_enfants'],
 };
 

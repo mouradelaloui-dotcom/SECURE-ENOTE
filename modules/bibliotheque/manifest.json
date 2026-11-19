@@ -1,0 +1,19 @@
+{
+  "id": "bibliotheque",
+  "nom": "Bibliothèque numérique",
+  "version": "1.0.0",
+  "description": "Catalogue de ressources pédagogiques (supports de cours, livres, articles, liens, logiciels). Métadonnées et lien uniquement, sans téléversement de fichier, pour préserver le plafond anti-DoS et minimiser la surface d'attaque.",
+  "auteur": "ELALOUI Mourad — ISTA NTIC Safi",
+  "depend_de": ["core"],
+  "migrations": ["app/src/db/module_biblio.sql"],
+  "backend": ["app/src/routes/biblio.js"],
+  "frontend": ["app/public/js/views/biblio.js"],
+  "permissions": {
+    "biblio.consulter": "Consulter le catalogue des ressources",
+    "biblio.gerer": "Publier des ressources (ne gère que les siennes)",
+    "biblio.gerer_tout": "Gérer les ressources de tous (gestionnaire, directeur)"
+  },
+  "menu": [
+    { "route": "/bibliotheque", "icone": "book", "titre": "Bibliothèque", "roles": ["formateur", "gestionnaire", "directeur", "administrateur", "stagiaire"] }
+  ]
+}

@@ -55,6 +55,7 @@ async function createApp() {
   require('./routes/absences')(router, app);
   require('./routes/stages')(router, app);
   require('./routes/edt')(router, app);
+  require('./routes/biblio')(router, app);
 
   async function handle(req, res) {
     securityHeaders(res, { https: config.https });
