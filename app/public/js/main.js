@@ -14,10 +14,10 @@ const NAV = {
   gestionnaire: [['#/', 'home', 'Tableau de bord'], ['#/absences', 'calendar', 'Absences et justificatifs'],
     ['#/journal', 'log', 'Journal des opérations'], ['#/compte', 'lock', 'Sécurité du compte']],
   directeur: [['#/', 'home', 'Tableau de bord'], ['#/validation-notes', 'check', 'Validation des notes'], ['#/validation-seances', 'calendar', 'Validation des séances'],
-    ['#/exports', 'download', 'Exports traçés'], ['#/journal', 'log', 'Journal des opérations'], ['#/compte', 'lock', 'Sécurité du compte']],
+    ['#/performance', 'chart', 'Performance formateurs'], ['#/exports', 'download', 'Exports traçés'], ['#/journal', 'log', 'Journal des opérations'], ['#/compte', 'lock', 'Sécurité du compte']],
   administrateur: [['#/', 'shield', 'Centre de sécurité'], ['#/alertes', 'alert', 'Alertes'], ['#/journal', 'log', 'Journal d\'audit'],
     ['#/utilisateurs', 'users', 'Comptes et rôles'], ['#/regles', 'sliders', 'Règles de détection'], ['#/sauvegardes', 'database', 'Sauvegardes et reprise'],
-    ['#/notes-validees', 'edit', 'Notes validées'], ['#/technique', 'wrench', 'Journal technique'], ['#/compte', 'lock', 'Sécurité du compte']],
+    ['#/notes-validees', 'edit', 'Notes validées'], ['#/performance', 'chart', 'Performance formateurs'], ['#/technique', 'wrench', 'Journal technique'], ['#/compte', 'lock', 'Sécurité du compte']],
   stagiaire: [['#/', 'cap', 'Mes notes'], ['#/absences', 'calendar', 'Mes absences'], ['#/compte', 'lock', 'Sécurité du compte']],
   parent: [['#/', 'family', 'Suivi de mes enfants'], ['#/compte', 'lock', 'Sécurité du compte']],
 };
@@ -25,9 +25,9 @@ const NAV = {
 const ROUTES = {
   formateur: { '/': formateur.dashboard, '/notes': formateur.notes, '/seances': formateur.seances },
   gestionnaire: { '/': absences.dashboard, '/absences': absences.liste, '/journal': admin.journal },
-  directeur: { '/': gestion.dashboard, '/validation-notes': gestion.lotsNotes, '/validation-seances': gestion.seances, '/exports': gestion.exports, '/journal': admin.journal },
+  directeur: { '/': gestion.dashboard, '/validation-notes': gestion.lotsNotes, '/validation-seances': gestion.seances, '/performance': admin.performance, '/exports': gestion.exports, '/journal': admin.journal },
   administrateur: { '/': admin.dashboard, '/alertes': admin.alertes, '/journal': admin.journal, '/utilisateurs': admin.utilisateurs, '/regles': admin.regles,
-    '/sauvegardes': admin.sauvegardes, '/notes-validees': admin.notesValidees, '/technique': admin.technique },
+    '/sauvegardes': admin.sauvegardes, '/notes-validees': admin.notesValidees, '/performance': admin.performance, '/technique': admin.technique },
   stagiaire: { '/': suivi.mesNotes, '/absences': suivi.mesAbsences },
   parent: { '/': suivi.enfants, '/enfant': suivi.enfant },
 };

@@ -322,4 +322,14 @@ module.exports = function adminRoutes(router, app) {
     return { __raw: true, contentType: 'text/csv; charset=utf-8', filename: `notes_${r.rows[0].groupe}_${r.rows[0].module}_${t}.csv`,
       headers: { 'X-Empreinte-SHA256': empreinte, 'X-Journal-Entree': String(entry.id) }, body: csv };
   });
+
+  // Performance administrative des formateurs (perspective) — lecture seule, directrice + administrateur.
+  router.get('/api/admin/performance', app.requirePerm('performance.consulter'), async (ctx) => {
+    const perf = require('../services/performance');
+    const opt = {};
+    if (ctx.query.delaiSaisie) opt.delaiSaisie = Math.max(0, Math.min(60, parseInt(ctx.query.delaiSaisie, 10) || 7));
+    if (ctx.query.delaiSeance) opt.delaiSeance = Math.max(0, Math.min(30, parseInt(ctx.query.delaiSeance, 10) || 2));
+    if (ctx.query.poids) { try { opt.poids = JSON.parse(ctx.query.poids); } catch { /* défaut */ } }
+    return perf.calculer(db, opt);
+  });
 };

@@ -303,3 +303,14 @@ pre.json { background: #f6f4f0; border-radius: 8px; padding: 10px 12px; font: 12
   .tabs { overflow-x: auto; }
   .login { padding: 12px; }
 }
+
+/* Perspective — Performance des formateurs */
+.perf-weights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 24px; }
+.perf-w-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; gap: 8px; }
+.perf-w input[type=range] { width: 100%; accent-color: var(--green); }
+.perf-bar { display: flex; align-items: center; gap: 7px; justify-content: center; }
+.perf-track { width: 48px; height: 7px; background: var(--grey-soft); border-radius: 5px; overflow: hidden; flex: none; }
+.perf-track > i { display: block; height: 100%; border-radius: 5px; }
+.perf-score { font-size: 18px; }
+.perf-late { color: var(--orange); font-weight: 600; }
+@media (max-width: 760px) { .perf-weights { grid-template-columns: 1fr; } }

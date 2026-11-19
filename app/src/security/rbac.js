@@ -22,13 +22,13 @@ const PERMISSIONS = {
   directeur: [
     'note.lire_toutes', 'note.valider',
     'seance.lire_toutes', 'seance.valider',
-    'journal.lire_partiel', 'export.notes', 'stats.lire', 'securite.synthese',
+    'journal.lire_partiel', 'export.notes', 'stats.lire', 'securite.synthese', 'performance.consulter',
   ],
   administrateur: [
     'note.lire_toutes', 'note.modifier_apres_validation', 'seance.lire_toutes',
     'journal.lire_complet', 'journal.verifier',
     'comptes.gerer', 'alertes.gerer', 'regles.configurer', 'sauvegardes.gerer',
-    'securite.synthese', 'stats.lire',
+    'securite.synthese', 'stats.lire', 'performance.consulter',
   ],
   // Espaces de consultation : lecture seule, limitée aux notes VALIDÉES et à l'assiduité.
   // Le dossier consulté est déterminé par le serveur (session), jamais par un identifiant fourni par le client.

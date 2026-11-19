@@ -310,4 +310,63 @@ export async function technique(main, { setTitle }) {
       h('td', {}, e.message), h('td', { class: 'mono' }, e.reference))), { empty: 'Aucune erreur enregistrée.' })));
 }
 
+// --- Performance administrative des formateurs (perspective) ---
+const PERF_CRIT = [
+  ['cc', 'CC à temps'], ['efm', 'EFM à temps'], ['valide1', 'Validé 1ʳᵉ fois'],
+  ['pointage', 'Pointage j. même'], ['absences', 'Absences à temps'], ['complet', 'Complétude'],
+];
+const POIDS_DEFAUT = { cc: 18, efm: 22, valide1: 12, pointage: 16, absences: 14, complet: 18 };
+function chipRythme(r) {
+  const cls = r === 'rapide' ? 'chip-vert' : r === 'moyen' ? 'chip-orange' : r === 'long' ? 'chip-rouge' : 'chip-gris';
+  return h('span', { class: `chip ${cls}` }, r);
+}
+const pcell = (v) => (v === null || v === undefined ? h('td', { class: 'fine' }, '—')
+  : h('td', {}, h('div', { class: 'perf-bar' },
+      h('div', { class: 'perf-track' }, h('i', { style: `width:${v}%;background:${v >= 85 ? 'var(--green)' : v >= 65 ? 'var(--orange)' : 'var(--red)'}` })),
+      h('span', { class: 'mono' }, `${v}%`))));
+
+export async function performance(main, { setTitle }) {
+  setTitle('Performance administrative des formateurs');
+  const poids = { ...POIDS_DEFAUT };
+  const zone = h('div');
+  const draw = async () => {
+    const q = encodeURIComponent(JSON.stringify(poids));
+    const res = await get(`/api/admin/performance?poids=${q}`);
+    const evalues = res.formateurs.filter((f) => f.note !== null);
+    const moy = evalues.length ? Math.round(evalues.reduce((a, b) => a + b.note, 0) / evalues.length) : 0;
+    const rapide = evalues.filter((f) => f.rythme === 'rapide').length;
+    zone.replaceChildren(
+      h('div', { class: 'kpis' },
+        kpi('Formateurs évalués', evalues.length, `sur ${res.formateurs.length} actifs`),
+        kpi('Note moyenne', `${moy}/100`, 'tous critères confondus'),
+        kpi('Classés « rapide »', rapide, '> 70 / 100'),
+        kpi('Règle des délais', `+${res.delaiSaisie} j`, `séance à temps sous ${res.delaiSeance} j`)),
+      card(null, table(
+        ['Formateur', ...PERF_CRIT.map(([, l]) => l), 'Retard', 'Note /100', 'Rythme'],
+        res.formateurs.map((f) => h('tr', {},
+          h('td', {}, h('b', {}, f.nom), h('div', { class: 'fine mono' }, f.login)),
+          ...PERF_CRIT.map(([k]) => pcell(f.criteres[k])),
+          h('td', { class: f.retard_moyen_jours > 2 ? 'perf-late' : '' }, `${f.retard_moyen_jours} j`),
+          h('td', {}, f.note === null ? h('span', { class: 'fine' }, '—') : h('b', { class: 'perf-score' }, f.note)),
+          h('td', {}, chipRythme(f.rythme)))),
+        { empty: 'Aucune donnée à mesurer pour le moment.' })));
+  };
+
+  let t = null;
+  const sliders = PERF_CRIT.map(([k, label]) => {
+    const val = h('span', { class: 'mono' }, `${poids[k]} %`);
+    const input = h('input', { type: 'range', min: 0, max: 40, value: poids[k],
+      oninput: (e) => { poids[k] = Number(e.target.value); val.textContent = `${poids[k]} %`; clearTimeout(t); t = setTimeout(draw, 250); } });
+    return h('div', { class: 'perf-w' }, h('div', { class: 'perf-w-top' }, h('span', {}, label), val), input);
+  });
+
+  main.replaceChildren(
+    banner('info', 'Perspective — note de ponctualité calculée à partir des données déjà horodatées dans eNote (lecture seule). Garde-fous : calcul visible, note proposée (non automatique), décision humaine avec droit de contestation, respect de la loi 09-08. On ne mesure que le respect des délais administratifs, jamais la qualité pédagogique.'),
+    card('Pondération des critères', h('p', { class: 'muted' }, 'Ajustez le poids de chaque critère : les notes se recalculent. Seuils : > 70 rapide · 50-70 moyen · < 50 long.'),
+      h('div', { class: 'perf-weights' }, ...sliders),
+      h('div', { class: 'card-foot' }, h('span'), h('button', { class: 'btn btn-sm', onclick: () => { Object.assign(poids, POIDS_DEFAUT); performance(main, { setTitle }); } }, 'Réinitialiser'))),
+    zone);
+  await draw();
+}
+
 export { chipStatut };
