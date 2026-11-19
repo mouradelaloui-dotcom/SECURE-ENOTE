@@ -19,6 +19,15 @@ const { seed, seedSuivi } = require('./db/seed');
 
 const PUBLIC = path.join(__dirname, '..', 'public');
 
+// Associe un chemin d'API à l'identifiant du module qui le fournit (null = socle).
+function moduleDeChemin(p) {
+  if (p.startsWith('/api/edt')) return 'emploi-du-temps';
+  if (p.startsWith('/api/stages')) return 'stages';
+  if (p.startsWith('/api/biblio')) return 'bibliotheque';
+  if (p.startsWith('/api/admin/performance')) return 'performance';
+  return null;
+}
+
 async function createApp() {
   cryptoSvc.init(config.masterKey);
   const db = new Pool({ ...config.db, max: 10 });
@@ -47,6 +56,20 @@ async function createApp() {
   }
   app.techLog = techLog;
 
+  // --- Registre des modules (« magasin ») ---
+  // Cache en mémoire de l'état actif/inactif. Si la table n'existe pas encore
+  // (module registre non installé), tout est considéré actif (rétrocompatible).
+  app.modulesActifs = null; // null = registre absent -> tout actif
+  app.rechargerModules = async () => {
+    try {
+      const r = await db.query('SELECT id FROM modules_installes WHERE actif');
+      app.modulesActifs = new Set(r.rows.map((x) => x.id));
+    } catch { app.modulesActifs = null; }
+  };
+  app.moduleActif = (id) => app.modulesActifs == null || id === 'core' || app.modulesActifs.has(id);
+  // Garde-fou : à placer en tête des routes d'un module. 404 si le module est désactivé.
+  app.requireModule = (id) => () => { if (!app.moduleActif(id)) throw new HttpError(404, 'Module désactivé par l\'administrateur.'); };
+
   require('./routes/auth')(router, app);
   require('./routes/notes')(router, app);
   require('./routes/seances')(router, app);
@@ -56,6 +79,9 @@ async function createApp() {
   require('./routes/stages')(router, app);
   require('./routes/edt')(router, app);
   require('./routes/biblio')(router, app);
+  require('./routes/modules')(router, app);
+
+  await app.rechargerModules();
 
   async function handle(req, res) {
     securityHeaders(res, { https: config.https });
@@ -78,6 +104,9 @@ async function createApp() {
       const m = router.match(req.method, url.pathname);
       if (!m) throw new HttpError(404, 'Ressource introuvable.');
       if (m.methodNotAllowed) throw new HttpError(405, 'Méthode non autorisée.');
+      // Garde-fou « magasin de modules » : une route d'un module désactivé est injoignable.
+      const mod = moduleDeChemin(url.pathname);
+      if (mod && !app.moduleActif(mod)) throw new HttpError(404, 'Module désactivé par l\'administrateur.');
       ctx.params = m.params;
       ctx.body = await readJson(req);
       let result;

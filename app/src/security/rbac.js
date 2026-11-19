@@ -30,7 +30,7 @@ const PERMISSIONS = {
   administrateur: [
     'note.lire_toutes', 'note.modifier_apres_validation', 'seance.lire_toutes',
     'journal.lire_complet', 'journal.verifier',
-    'comptes.gerer', 'alertes.gerer', 'regles.configurer', 'sauvegardes.gerer',
+    'comptes.gerer', 'alertes.gerer', 'regles.configurer', 'sauvegardes.gerer', 'modules.gerer',
     'securite.synthese', 'stats.lire', 'performance.consulter', 'edt.consulter', 'edt.modifier', 'stage.consulter', 'biblio.consulter',
   ],
   // Espaces de consultation : lecture seule, limitée aux notes VALIDÉES et à l'assiduité.

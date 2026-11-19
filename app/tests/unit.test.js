@@ -28,7 +28,11 @@ test('RBAC — notes et séances : formateur puis directrice ; le gestionnaire d
 test('RBAC — séparation des tâches : l\'administrateur ne saisit ni ne valide', () => {
   assert.equal(estAutorise('administrateur', 'note.saisir'), false);
   assert.equal(estAutorise('administrateur', 'note.valider'), false);
-  ['comptes.gerer', 'journal.lire_complet', 'alertes.gerer', 'sauvegardes.gerer'].forEach((p) => assert.equal(estAutorise('administrateur', p), true));
+  ['comptes.gerer', 'journal.lire_complet', 'alertes.gerer', 'sauvegardes.gerer', 'modules.gerer'].forEach((p) => assert.equal(estAutorise('administrateur', p), true));
+});
+test('RBAC — magasin de modules : réservé à l\'administrateur', () => {
+  assert.equal(estAutorise('administrateur', 'modules.gerer'), true);
+  ['formateur', 'gestionnaire', 'directeur', 'stagiaire', 'parent'].forEach((r) => assert.equal(estAutorise(r, 'modules.gerer'), false));
 });
 test('RBAC — rôle inconnu : aucune permission (refus par défaut)', () => {
   assert.equal(estAutorise('pirate', 'note.saisir'), false);

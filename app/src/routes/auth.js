@@ -154,6 +154,7 @@ module.exports = function authRoutes(router, app) {
     return {
       utilisateur: { ...ctx.user, etablissement: ctx.session.etablissement },
       permissions: PERMISSIONS[ctx.user.role], csrf: ctx.session.csrf,
+      modules_actifs: app.modulesActifs ? [...app.modulesActifs] : null,
       notifications_non_lues: n.rows[0].n, demo: config.demoMode,
       session: { expire_inactivite_min: config.session.idleMinutes },
     };

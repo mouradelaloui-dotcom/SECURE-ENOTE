@@ -9,6 +9,7 @@ import * as absences from './views/absences.js';
 import * as edt from './views/edt.js';
 import * as stages from './views/stages.js';
 import * as biblio from './views/biblio.js';
+import * as magasin from './views/modules.js';
 
 const root = document.getElementById('app');
 
@@ -20,7 +21,7 @@ const NAV = {
     ['#/performance', 'chart', 'Performance formateurs'], ['#/edt', 'calendar', 'Emploi du temps'], ['#/stages', 'cap', 'Stages'], ['#/bibliotheque', 'book', 'Bibliothèque'], ['#/exports', 'download', 'Exports traçés'], ['#/journal', 'log', 'Journal des opérations'], ['#/compte', 'lock', 'Sécurité du compte']],
   administrateur: [['#/', 'shield', 'Centre de sécurité'], ['#/alertes', 'alert', 'Alertes'], ['#/journal', 'log', 'Journal d\'audit'],
     ['#/utilisateurs', 'users', 'Comptes et rôles'], ['#/regles', 'sliders', 'Règles de détection'], ['#/sauvegardes', 'database', 'Sauvegardes et reprise'],
-    ['#/notes-validees', 'edit', 'Notes validées'], ['#/performance', 'chart', 'Performance formateurs'], ['#/bibliotheque', 'book', 'Bibliothèque'], ['#/technique', 'wrench', 'Journal technique'], ['#/compte', 'lock', 'Sécurité du compte']],
+    ['#/notes-validees', 'edit', 'Notes validées'], ['#/performance', 'chart', 'Performance formateurs'], ['#/bibliotheque', 'book', 'Bibliothèque'], ['#/modules', 'package', 'Magasin de modules'], ['#/technique', 'wrench', 'Journal technique'], ['#/compte', 'lock', 'Sécurité du compte']],
   stagiaire: [['#/', 'cap', 'Mes notes'], ['#/absences', 'calendar', 'Mes absences'], ['#/edt', 'calendar', 'Emploi du temps'], ['#/stages', 'cap', 'Stages'], ['#/bibliotheque', 'book', 'Bibliothèque'], ['#/compte', 'lock', 'Sécurité du compte']],
   parent: [['#/', 'family', 'Suivi de mes enfants'], ['#/compte', 'lock', 'Sécurité du compte']],
 };
@@ -30,10 +31,27 @@ const ROUTES = {
   gestionnaire: { '/': absences.dashboard, '/absences': absences.liste, '/stages': stages.stages, '/bibliotheque': biblio.bibliotheque, '/journal': admin.journal },
   directeur: { '/': gestion.dashboard, '/validation-notes': gestion.lotsNotes, '/validation-seances': gestion.seances, '/performance': admin.performance, '/edt': edt.edt, '/stages': stages.stages, '/bibliotheque': biblio.bibliotheque, '/exports': gestion.exports, '/journal': admin.journal },
   administrateur: { '/': admin.dashboard, '/alertes': admin.alertes, '/journal': admin.journal, '/utilisateurs': admin.utilisateurs, '/regles': admin.regles,
-    '/sauvegardes': admin.sauvegardes, '/notes-validees': admin.notesValidees, '/performance': admin.performance, '/stages': stages.stages, '/bibliotheque': biblio.bibliotheque, '/technique': admin.technique },
+    '/sauvegardes': admin.sauvegardes, '/notes-validees': admin.notesValidees, '/performance': admin.performance, '/stages': stages.stages, '/bibliotheque': biblio.bibliotheque, '/modules': magasin.magasin, '/technique': admin.technique },
   stagiaire: { '/': suivi.mesNotes, '/absences': suivi.mesAbsences, '/edt': edt.edt, '/stages': stages.stages, '/bibliotheque': biblio.bibliotheque },
   parent: { '/': suivi.enfants, '/enfant': suivi.enfant },
 };
+
+// Associe une route (hash ou chemin) à l'identifiant du module qui la fournit (null = socle, toujours visible).
+function moduleDeRoute(r) {
+  const p = r.replace(/^#/, '');
+  if (p.startsWith('/edt')) return 'emploi-du-temps';
+  if (p.startsWith('/stages')) return 'stages';
+  if (p.startsWith('/bibliotheque')) return 'bibliotheque';
+  if (p.startsWith('/performance')) return 'performance';
+  return null;
+}
+// Le module est-il actif ? modules_actifs null = registre absent -> tout actif.
+function moduleVisible(route) {
+  const id = moduleDeRoute(route);
+  if (!id) return true;
+  const actifs = state.me && state.me.modules_actifs;
+  return actifs == null || actifs.includes(id);
+}
 
 const ofppt = (cls = '') => h('img', { class: `ofppt-logo ${cls}`, src: '/img/ofppt.png', alt: 'OFPPT' });
 
@@ -161,7 +179,7 @@ async function showNotifications(bell) {
 
 function shell() {
   const me = state.me.utilisateur;
-  const nav = h('nav', { class: 'nav' }, NAV[me.role].map(([href, ic, label]) => h('a', { href, dataset: { href } }, icon(ic), h('span', {}, label))));
+  const nav = h('nav', { class: 'nav' }, NAV[me.role].filter(([href]) => moduleVisible(href)).map(([href, ic, label]) => h('a', { href, dataset: { href } }, icon(ic), h('span', {}, label))));
   const title = h('h1', { class: 'page-title' });
   const bell = h('button', { class: 'icon-btn bell', 'aria-label': 'Notifications', onclick: () => showNotifications(bell) }, icon('bell', 20),
     state.me.notifications_non_lues ? h('span', { class: 'badge' }, String(state.me.notifications_non_lues)) : null);
@@ -197,6 +215,7 @@ async function render() {
   const view = path === '/compte' ? compte.page : ROUTES[me.role][path];
   ui.main.replaceChildren(h('div', { class: 'loading' }, 'Chargement…'));
   if (!view) { ui.title.textContent = 'Page introuvable'; ui.main.replaceChildren(banner('warn', 'Cette page n\'existe pas ou n\'est pas accessible à votre profil.')); return; }
+  if (!moduleVisible(path)) { ui.title.textContent = 'Module désactivé'; ui.main.replaceChildren(banner('warn', 'Ce module a été désactivé par l\'administrateur.')); return; }
   try {
     await view(ui.main, { setTitle: (t) => { ui.title.textContent = t; document.title = `${t} — SECURE-eNOTE`; }, me, refresh: render });
   } catch (ex) {
