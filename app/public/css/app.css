@@ -314,3 +314,4 @@ pre.json { background: #f6f4f0; border-radius: 8px; padding: 10px 12px; font: 12
 .perf-score { font-size: 18px; }
 .perf-late { color: var(--orange); font-weight: 600; }
 @media (max-width: 760px) { .perf-weights { grid-template-columns: 1fr; } }
+.perf-inp { width: 70px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; text-align: center; }

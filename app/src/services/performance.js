@@ -107,6 +107,47 @@ async function calculer(db, opt = {}) {
     GROUP BY a.formateur_id
   `);
 
+  // --- Indicateurs pédagogiques (INFORMATION, hors note de ponctualité) ---
+  // a) Taux de réussite : parmi les EFM du formateur, part des notes >= 10 (déchiffrées).
+  let reussiteMap = new Map();
+  try {
+    const crypto = require('../security/crypto');
+    const efm = await db.query(
+      `SELECT auteur_id AS formateur_id, valeur_chiffree FROM notes WHERE type_eval='EFM' AND statut <> 'brouillon'`);
+    const agg = new Map();
+    for (const r of efm.rows) {
+      let v = null; try { v = Number(crypto.decrypt(r.valeur_chiffree)); } catch { v = null; }
+      if (v === null || Number.isNaN(v)) continue;
+      const a = agg.get(r.formateur_id) || { tot: 0, ok: 0 };
+      a.tot++; if (v >= 10) a.ok++; agg.set(r.formateur_id, a);
+    }
+    reussiteMap = agg;
+  } catch { reussiteMap = new Map(); }
+
+  // b) Taux de déperdition : part des stagiaires en abandon/exclusion dans les groupes du formateur.
+  //    Nécessite la colonne stagiaires.statut (migration_perf.sql). Attribution au niveau groupe.
+  let deperditionMap = new Map();
+  const colStatut = await db.query(
+    `SELECT 1 FROM information_schema.columns WHERE table_name='stagiaires' AND column_name='statut'`);
+  if (colStatut.rows.length) {
+    const dep = await db.query(`
+      WITH grp AS (SELECT DISTINCT formateur_id, groupe_id FROM affectations)
+      SELECT g.formateur_id,
+             COUNT(*) AS tot,
+             COUNT(*) FILTER (WHERE s.statut IN ('abandon','exclu')) AS perdus
+      FROM grp g JOIN stagiaires s ON s.groupe_id = g.groupe_id
+      GROUP BY g.formateur_id`);
+    deperditionMap = new Map(dep.rows.map((r) => [r.formateur_id, { tot: Number(r.tot), perdus: Number(r.perdus) }]));
+  }
+
+  // c) Créativité / note globale : saisies par la direction (table perf_direction).
+  let directionMap = new Map();
+  const tblDir = await db.query("SELECT to_regclass('public.perf_direction') AS t");
+  if (tblDir.rows[0].t) {
+    const d = await db.query('SELECT formateur_id, creativite, note_globale FROM perf_direction');
+    directionMap = new Map(d.rows.map((r) => [r.formateur_id, r]));
+  }
+
   // 4) Liste des formateurs actifs.
   const formateurs = await db.query(
     `SELECT id, login, nom_complet FROM utilisateurs WHERE role='formateur' AND statut='actif' ORDER BY nom_complet`);
@@ -166,11 +207,23 @@ async function calculer(db, opt = {}) {
     const evalue = sommeW > 0;   // au moins un critère mesurable
     const note = evalue ? Math.max(0, Math.min(100, Math.round(base - 2 * retardMoyen))) : null;
 
+    // Indicateurs pédagogiques (information, hors note).
+    const rea = reussiteMap.get(m.id);
+    const dep = deperditionMap.get(m.id);
+    const dir = directionMap.get(m.id);
+    const info = {
+      reussite: rea && rea.tot > 0 ? Math.round((rea.ok / rea.tot) * 100) : null,
+      deperdition: dep && dep.tot > 0 ? Math.round((dep.perdus / dep.tot) * 100) : null,
+      creativite: dir && dir.creativite != null ? Number(dir.creativite) : null,
+      note_direction: dir && dir.note_globale != null ? Number(dir.note_globale) : null,
+    };
+
     lignes.push({
       formateur_id: m.id, login: m.login, nom: m.nom_complet,
       criteres: crit,
       retard_moyen_jours: Math.round(retardMoyen * 10) / 10,
       donnees: { notes_saisies: m.saisies, notes_attendues: attendues, seances: m.seaTot },
+      info,
       note, rythme: evalue ? classe(note) : 'non évalué',
     });
   }
@@ -185,6 +238,8 @@ if (require.main === module) {
   (async () => {
     const config = require('../config');
     const { Pool } = require('../lib/pg');
+    // Initialise le chiffrement (nécessaire pour le taux de réussite, qui déchiffre les EFM).
+    try { require('../security/crypto').init(config.masterKey); } catch { /* clé absente : réussite affichée à — */ }
     const db = new Pool({ ...config.db, max: 2 });
     try {
       const res = await calculer(db);
@@ -203,6 +258,17 @@ if (require.main === module) {
           pad(f.retard_moyen_jours, 7) + padL(f.note, 5) + '  ' + f.rythme);
       }
       if (!res.formateurs.length) console.log('(aucun formateur actif, ou aucune donnée à mesurer)');
+      console.log('\nIndicateurs pédagogiques (INFORMATION — hors note de ponctualité) :');
+      console.log(pad('Formateur', 22) + pad('Réussite', 10) + pad('Déperdition', 13) + pad('Créativité', 12) + 'Note direction');
+      console.log('-'.repeat(70));
+      for (const f of res.formateurs) {
+        const i = f.info || {};
+        console.log(
+          pad(f.nom, 22) + pad(i.reussite === null || i.reussite === undefined ? '—' : i.reussite + '%', 10) +
+          pad(i.deperdition === null || i.deperdition === undefined ? '—' : i.deperdition + '%', 13) +
+          pad(i.creativite === null || i.creativite === undefined ? '— (à saisir)' : i.creativite + '/20', 12) +
+          (i.note_direction === null || i.note_direction === undefined ? '—' : i.note_direction + '/20'));
+      }
       console.log('');
     } catch (e) {
       console.error('Erreur :', e.message);

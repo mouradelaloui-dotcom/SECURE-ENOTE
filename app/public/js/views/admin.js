@@ -341,7 +341,7 @@ export async function performance(main, { setTitle }) {
         kpi('Note moyenne', `${moy}/100`, 'tous critères confondus'),
         kpi('Classés « rapide »', rapide, '> 70 / 100'),
         kpi('Règle des délais', `+${res.delaiSaisie} j`, `séance à temps sous ${res.delaiSeance} j`)),
-      card(null, table(
+      card('Note de ponctualité administrative', table(
         ['Formateur', ...PERF_CRIT.map(([, l]) => l), 'Retard', 'Note /100', 'Rythme'],
         res.formateurs.map((f) => h('tr', {},
           h('td', {}, h('b', {}, f.nom), h('div', { class: 'fine mono' }, f.login)),
@@ -349,7 +349,30 @@ export async function performance(main, { setTitle }) {
           h('td', { class: f.retard_moyen_jours > 2 ? 'perf-late' : '' }, `${f.retard_moyen_jours} j`),
           h('td', {}, f.note === null ? h('span', { class: 'fine' }, '—') : h('b', { class: 'perf-score' }, f.note)),
           h('td', {}, chipRythme(f.rythme)))),
-        { empty: 'Aucune donnée à mesurer pour le moment.' })));
+        { empty: 'Aucune donnée à mesurer pour le moment.' })),
+      card('Indicateurs pédagogiques — information (NON comptés dans la note ci-dessus)',
+        h('p', { class: 'muted' }, 'La réussite est calculée sur les EFM. La créativité et la note globale sont saisies par la direction (évaluation humaine). Le taux de déperdition vient du statut des stagiaires.'),
+        table(
+          ['Formateur', 'Taux de réussite', 'Déperdition', 'Créativité /20', 'Note direction /20', ''],
+          res.formateurs.map((f) => {
+            const info = f.info || {};
+            const crea = h('input', { type: 'number', min: 0, max: 20, step: 0.5, value: info.creativite ?? '', class: 'perf-inp', placeholder: '—' });
+            const ng = h('input', { type: 'number', min: 0, max: 20, step: 0.5, value: info.note_direction ?? '', class: 'perf-inp', placeholder: '—' });
+            const save = h('button', { class: 'btn btn-sm', onclick: async () => {
+              try {
+                await post('/api/admin/performance/direction', { formateur_id: f.formateur_id, creativite: crea.value, note_globale: ng.value });
+                toast('Évaluation enregistrée pour ' + f.nom);
+              } catch (e) { toast(e.message || 'Échec de l\'enregistrement', 'error'); }
+            } }, 'Enregistrer');
+            return h('tr', {},
+              h('td', {}, f.nom),
+              h('td', {}, info.reussite === null || info.reussite === undefined ? h('span', { class: 'fine' }, '—') : `${info.reussite} %`),
+              h('td', { class: (info.deperdition ?? 0) > 15 ? 'perf-late' : '' }, info.deperdition === null || info.deperdition === undefined ? h('span', { class: 'fine' }, '—') : `${info.deperdition} %`),
+              h('td', {}, crea),
+              h('td', {}, ng),
+              h('td', {}, save));
+          }),
+          { empty: '—' })));
   };
 
   let t = null;

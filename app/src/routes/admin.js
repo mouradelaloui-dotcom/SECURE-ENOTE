@@ -332,4 +332,46 @@ module.exports = function adminRoutes(router, app) {
     if (ctx.query.poids) { try { opt.poids = JSON.parse(ctx.query.poids); } catch { /* défaut */ } }
     return perf.calculer(db, opt);
   });
+
+  // Saisie par la direction : créativité et note globale d'un formateur (évaluation humaine, hors note auto).
+  router.post('/api/admin/performance/direction', app.requirePerm('performance.consulter'), async (ctx) => {
+    const fid = parseInt(ctx.body.formateur_id, 10);
+    if (!Number.isInteger(fid)) throw new HttpError(400, 'Formateur invalide.');
+    const f = (await db.query("SELECT id FROM utilisateurs WHERE id=$1 AND role='formateur'", [fid])).rows[0];
+    if (!f) throw new HttpError(404, 'Formateur introuvable.');
+    const num = (v) => {
+      if (v === null || v === undefined || v === '') return null;
+      const n = Number(v);
+      if (!Number.isFinite(n) || n < 0 || n > 20) throw new HttpError(400, 'Valeur hors barème (0 à 20).');
+      return Math.round(n * 10) / 10;
+    };
+    const creativite = num(ctx.body.creativite);
+    const note_globale = num(ctx.body.note_globale);
+    const commentaire = ctx.body.commentaire ? String(ctx.body.commentaire).slice(0, 500) : null;
+    try {
+      await db.query(
+        `INSERT INTO perf_direction (formateur_id, creativite, note_globale, commentaire, maj_le, maj_par)
+         VALUES ($1,$2,$3,$4, now(), $5)
+         ON CONFLICT (formateur_id) DO UPDATE SET creativite=$2, note_globale=$3, commentaire=$4, maj_le=now(), maj_par=$5`,
+        [fid, creativite, note_globale, commentaire, ctx.user.id]);
+    } catch (e) {
+      throw new HttpError(400, "Évaluation indisponible : lancez d'abord la migration (table perf_direction).");
+    }
+    await app.log(ctx, 'performance.evaluation_direction', `formateur:${fid}`, { creativite, note_globale });
+    return { ok: true };
+  });
+
+  // Saisie par la direction : statut d'un stagiaire (pour le taux de déperdition).
+  router.post('/api/admin/stagiaire/statut', app.requirePerm('performance.consulter'), async (ctx) => {
+    const sid = parseInt(ctx.body.stagiaire_id, 10);
+    const statut = String(ctx.body.statut || '');
+    if (!Number.isInteger(sid)) throw new HttpError(400, 'Stagiaire invalide.');
+    if (!['actif', 'abandon', 'exclu', 'diplome'].includes(statut)) throw new HttpError(400, 'Statut invalide.');
+    let r;
+    try { r = await db.query('UPDATE stagiaires SET statut=$2 WHERE id=$1 RETURNING id', [sid, statut]); }
+    catch (e) { throw new HttpError(400, "Statut indisponible : lancez d'abord la migration (colonne stagiaires.statut)."); }
+    if (!r.rows.length) throw new HttpError(404, 'Stagiaire introuvable.');
+    await app.log(ctx, 'stagiaire.statut', `stagiaire:${sid}`, { statut });
+    return { ok: true };
+  });
 };
