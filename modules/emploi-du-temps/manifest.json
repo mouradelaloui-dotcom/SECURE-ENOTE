@@ -1,0 +1,18 @@
+{
+  "id": "emploi-du-temps",
+  "nom": "Emploi du temps",
+  "version": "1.0.0",
+  "description": "Planning hebdomadaire des séances par groupe. Consultation par tous les profils, édition par la direction.",
+  "auteur": "ELALOUI Mourad — ISTA NTIC Safi",
+  "depend_de": ["core"],
+  "migrations": ["app/src/db/module_edt.sql"],
+  "backend": ["app/src/routes/edt.js"],
+  "frontend": ["app/public/js/views/edt.js"],
+  "permissions": {
+    "edt.consulter": "Voir l'emploi du temps",
+    "edt.modifier": "Ajouter ou retirer des créneaux (direction)"
+  },
+  "menu": [
+    { "route": "/edt", "icone": "calendar", "titre": "Emploi du temps", "roles": ["formateur", "gestionnaire", "directeur", "administrateur", "stagiaire"] }
+  ]
+}

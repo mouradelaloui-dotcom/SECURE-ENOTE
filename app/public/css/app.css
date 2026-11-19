@@ -315,3 +315,22 @@ pre.json { background: #f6f4f0; border-radius: 8px; padding: 10px 12px; font: 12
 .perf-late { color: var(--orange); font-weight: 600; }
 @media (max-width: 760px) { .perf-weights { grid-template-columns: 1fr; } }
 .perf-inp { width: 70px; padding: 5px 8px; border: 1px solid var(--line); border-radius: 8px; font: inherit; text-align: center; }
+
+/* Module Emploi du temps */
+.edt-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+.edt-bar select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.edt-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.edt-col { background: var(--alt); border-radius: 12px; padding: 8px; min-height: 90px; }
+.edt-jour { font-weight: 700; text-align: center; padding: 6px 0; color: var(--dark); }
+.edt-case { position: relative; background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--green); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; }
+.edt-h { font-weight: 700; font-size: 13px; }
+.edt-mod { font-size: 13px; margin-top: 2px; }
+.edt-f { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.edt-salle { font-size: 12px; color: var(--muted); }
+.edt-vide { text-align: center; color: var(--muted); padding: 10px 0; }
+.edt-del { position: absolute; top: 4px; right: 6px; border: none; background: none; color: var(--red); font-size: 18px; line-height: 1; cursor: pointer; }
+.edt-form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px 18px; }
+.edt-champ { display: flex; flex-direction: column; gap: 4px; }
+.edt-champ label { font-size: 13px; font-weight: 600; }
+.edt-champ input, .edt-champ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+@media (max-width: 900px) { .edt-grid { grid-template-columns: repeat(2, 1fr); } .edt-form { grid-template-columns: 1fr; } }

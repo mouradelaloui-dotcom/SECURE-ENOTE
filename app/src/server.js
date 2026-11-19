@@ -53,6 +53,7 @@ async function createApp() {
   require('./routes/admin')(router, app);
   require('./routes/suivi')(router, app);
   require('./routes/absences')(router, app);
+  require('./routes/edt')(router, app);
 
   async function handle(req, res) {
     securityHeaders(res, { https: config.https });
