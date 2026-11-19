@@ -334,3 +334,24 @@ pre.json { background: #f6f4f0; border-radius: 8px; padding: 10px 12px; font: 12
 .edt-champ label { font-size: 13px; font-weight: 600; }
 .edt-champ input, .edt-champ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
 @media (max-width: 900px) { .edt-grid { grid-template-columns: repeat(2, 1fr); } .edt-form { grid-template-columns: 1fr; } }
+
+/* Module Stages */
+.st-bar { display: flex; align-items: center; gap: 10px; }
+.st-bar select, .st-sel { padding: 6px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.st-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 14px; }
+.st-kpi { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; text-align: center; border-top: 4px solid var(--muted); }
+.st-kpi b { display: block; font-size: 30px; font-family: 'Rubik', Arial, sans-serif; }
+.st-kpi span { font-size: 13px; color: var(--muted); }
+.st-kpi.st-rech { border-top-color: #6B7785; } .st-kpi.st-cours { border-top-color: #2B6CB0; }
+.st-kpi.st-fini { border-top-color: #B4530A; } .st-kpi.st-valide { border-top-color: var(--green); }
+.st-chip { display: inline-block; padding: 3px 12px; border-radius: 30px; font-size: 12.5px; font-weight: 700; color: #fff; }
+.st-chip.st-rech { background: #6B7785; } .st-chip.st-cours { background: #2B6CB0; }
+.st-chip.st-fini { background: #B4530A; } .st-chip.st-valide { background: var(--green); }
+.st-del { border: none; background: none; color: var(--red); font-size: 18px; cursor: pointer; }
+.st-form { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 18px; }
+.st-champ { display: flex; flex-direction: column; gap: 4px; }
+.st-champ label { font-size: 13px; font-weight: 600; }
+.st-champ input, .st-champ select { padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; font: inherit; }
+.st-ligne { display: flex; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.st-lab { width: 180px; color: var(--muted); font-weight: 600; }
+@media (max-width: 900px) { .st-kpis { grid-template-columns: repeat(2, 1fr); } .st-form { grid-template-columns: 1fr 1fr; } }

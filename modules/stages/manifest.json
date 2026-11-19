@@ -1,0 +1,19 @@
+{
+  "id": "stages",
+  "nom": "Stages",
+  "version": "1.0.0",
+  "description": "Suivi des stages des stagiaires : entreprise, encadrant, période, statut.",
+  "auteur": "ELALOUI Mourad — ISTA NTIC Safi",
+  "depend_de": ["core"],
+  "migrations": ["app/src/db/module_stages.sql"],
+  "backend": ["app/src/routes/stages.js"],
+  "frontend": ["app/public/js/views/stages.js"],
+  "permissions": {
+    "stage.consulter": "Voir les stages",
+    "stage.gerer": "Créer et suivre les stages (direction, gestionnaire)",
+    "stage.lire_soi": "Le stagiaire voit son propre stage"
+  },
+  "menu": [
+    { "route": "/stages", "icone": "cap", "titre": "Stages", "roles": ["formateur", "gestionnaire", "directeur", "administrateur", "stagiaire"] }
+  ]
+}

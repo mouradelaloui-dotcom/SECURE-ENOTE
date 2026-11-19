@@ -1,0 +1,18 @@
+{
+  "id": "absences",
+  "nom": "Absences",
+  "version": "1.0.0",
+  "description": "Suivi de l'assiduité et justificatifs d'absence (intégré au noyau).",
+  "auteur": "ELALOUI Mourad — ISTA NTIC Safi",
+  "depend_de": ["core"],
+  "backend": ["app/src/routes/absences.js"],
+  "frontend": ["app/public/js/views/absences.js"],
+  "permissions": {
+    "absence.lire": "Consulter les absences",
+    "absence.justifier": "Enregistrer et retirer les justificatifs"
+  },
+  "menu": [
+    { "route": "/absences", "icone": "calendar", "titre": "Absences", "roles": ["gestionnaire", "stagiaire"] }
+  ],
+  "note": "Module déjà présent dans le noyau ; ce manifeste le formalise dans le catalogue."
+}

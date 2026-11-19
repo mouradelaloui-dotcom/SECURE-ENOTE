@@ -23,7 +23,7 @@ test('RBAC — notes et séances : formateur puis directrice ; le gestionnaire d
   for (const p of ['note.lire_toutes', 'note.controler', 'note.valider', 'export.notes', 'seance.lire_toutes', 'seance.controler', 'seance.valider', 'stats.lire']) {
     assert.equal(estAutorise('gestionnaire', p), false);
   }
-  assert.deepEqual(PERMISSIONS.gestionnaire, ['absence.lire', 'absence.justifier', 'journal.lire_partiel', 'edt.consulter']);
+  assert.deepEqual(PERMISSIONS.gestionnaire, ['absence.lire', 'absence.justifier', 'journal.lire_partiel', 'edt.consulter', 'stage.consulter', 'stage.gerer']);
 });
 test('RBAC — séparation des tâches : l\'administrateur ne saisit ni ne valide', () => {
   assert.equal(estAutorise('administrateur', 'note.saisir'), false);
@@ -36,7 +36,7 @@ test('RBAC — rôle inconnu : aucune permission (refus par défaut)', () => {
 });
 
 test('RBAC — stagiaire et parent : lecture seule de leur dossier, aucune autre permission', () => {
-  assert.deepEqual(PERMISSIONS.stagiaire, ['dossier.lire_soi', 'edt.consulter']);
+  assert.deepEqual(PERMISSIONS.stagiaire, ['dossier.lire_soi', 'edt.consulter', 'stage.lire_soi']);
   assert.deepEqual(PERMISSIONS.parent, ['dossier.lire_enfants']);
   for (const p of ['note.lire_toutes', 'note.lire_propres', 'note.saisir', 'seance.lire_toutes', 'journal.lire_partiel', 'export.notes', 'stats.lire']) {
     assert.equal(estAutorise('stagiaire', p), false); assert.equal(estAutorise('parent', p), false);

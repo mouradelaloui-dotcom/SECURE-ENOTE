@@ -7,29 +7,30 @@ import * as compte from './views/compte.js';
 import * as suivi from './views/suivi.js';
 import * as absences from './views/absences.js';
 import * as edt from './views/edt.js';
+import * as stages from './views/stages.js';
 
 const root = document.getElementById('app');
 
 const NAV = {
-  formateur: [['#/', 'home', 'Tableau de bord'], ['#/notes', 'notes', 'Saisie des notes'], ['#/seances', 'calendar', 'Mes séances'], ['#/edt', 'calendar', 'Emploi du temps'], ['#/compte', 'lock', 'Sécurité du compte']],
-  gestionnaire: [['#/', 'home', 'Tableau de bord'], ['#/absences', 'calendar', 'Absences et justificatifs'],
+  formateur: [['#/', 'home', 'Tableau de bord'], ['#/notes', 'notes', 'Saisie des notes'], ['#/seances', 'calendar', 'Mes séances'], ['#/edt', 'calendar', 'Emploi du temps'], ['#/stages', 'cap', 'Stages'], ['#/compte', 'lock', 'Sécurité du compte']],
+  gestionnaire: [['#/', 'home', 'Tableau de bord'], ['#/absences', 'calendar', 'Absences et justificatifs'], ['#/stages', 'cap', 'Stages'],
     ['#/journal', 'log', 'Journal des opérations'], ['#/compte', 'lock', 'Sécurité du compte']],
   directeur: [['#/', 'home', 'Tableau de bord'], ['#/validation-notes', 'check', 'Validation des notes'], ['#/validation-seances', 'calendar', 'Validation des séances'],
-    ['#/performance', 'chart', 'Performance formateurs'], ['#/edt', 'calendar', 'Emploi du temps'], ['#/exports', 'download', 'Exports traçés'], ['#/journal', 'log', 'Journal des opérations'], ['#/compte', 'lock', 'Sécurité du compte']],
+    ['#/performance', 'chart', 'Performance formateurs'], ['#/edt', 'calendar', 'Emploi du temps'], ['#/stages', 'cap', 'Stages'], ['#/exports', 'download', 'Exports traçés'], ['#/journal', 'log', 'Journal des opérations'], ['#/compte', 'lock', 'Sécurité du compte']],
   administrateur: [['#/', 'shield', 'Centre de sécurité'], ['#/alertes', 'alert', 'Alertes'], ['#/journal', 'log', 'Journal d\'audit'],
     ['#/utilisateurs', 'users', 'Comptes et rôles'], ['#/regles', 'sliders', 'Règles de détection'], ['#/sauvegardes', 'database', 'Sauvegardes et reprise'],
     ['#/notes-validees', 'edit', 'Notes validées'], ['#/performance', 'chart', 'Performance formateurs'], ['#/technique', 'wrench', 'Journal technique'], ['#/compte', 'lock', 'Sécurité du compte']],
-  stagiaire: [['#/', 'cap', 'Mes notes'], ['#/absences', 'calendar', 'Mes absences'], ['#/edt', 'calendar', 'Emploi du temps'], ['#/compte', 'lock', 'Sécurité du compte']],
+  stagiaire: [['#/', 'cap', 'Mes notes'], ['#/absences', 'calendar', 'Mes absences'], ['#/edt', 'calendar', 'Emploi du temps'], ['#/stages', 'cap', 'Stages'], ['#/compte', 'lock', 'Sécurité du compte']],
   parent: [['#/', 'family', 'Suivi de mes enfants'], ['#/compte', 'lock', 'Sécurité du compte']],
 };
 
 const ROUTES = {
-  formateur: { '/': formateur.dashboard, '/notes': formateur.notes, '/seances': formateur.seances, '/edt': edt.edt },
-  gestionnaire: { '/': absences.dashboard, '/absences': absences.liste, '/journal': admin.journal },
-  directeur: { '/': gestion.dashboard, '/validation-notes': gestion.lotsNotes, '/validation-seances': gestion.seances, '/performance': admin.performance, '/edt': edt.edt, '/exports': gestion.exports, '/journal': admin.journal },
+  formateur: { '/': formateur.dashboard, '/notes': formateur.notes, '/seances': formateur.seances, '/edt': edt.edt, '/stages': stages.stages },
+  gestionnaire: { '/': absences.dashboard, '/absences': absences.liste, '/stages': stages.stages, '/journal': admin.journal },
+  directeur: { '/': gestion.dashboard, '/validation-notes': gestion.lotsNotes, '/validation-seances': gestion.seances, '/performance': admin.performance, '/edt': edt.edt, '/stages': stages.stages, '/exports': gestion.exports, '/journal': admin.journal },
   administrateur: { '/': admin.dashboard, '/alertes': admin.alertes, '/journal': admin.journal, '/utilisateurs': admin.utilisateurs, '/regles': admin.regles,
-    '/sauvegardes': admin.sauvegardes, '/notes-validees': admin.notesValidees, '/performance': admin.performance, '/technique': admin.technique },
-  stagiaire: { '/': suivi.mesNotes, '/absences': suivi.mesAbsences, '/edt': edt.edt },
+    '/sauvegardes': admin.sauvegardes, '/notes-validees': admin.notesValidees, '/performance': admin.performance, '/stages': stages.stages, '/technique': admin.technique },
+  stagiaire: { '/': suivi.mesNotes, '/absences': suivi.mesAbsences, '/edt': edt.edt, '/stages': stages.stages },
   parent: { '/': suivi.enfants, '/enfant': suivi.enfant },
 };
 
